@@ -6,21 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Cache Check</title> 
     <style>
-        /* تأكد إن الخلفية سوداء تماماً */
         body { margin: 0; background: black; color: #ff007f; font-family: 'Courier New', monospace; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         
-        /* كود الماتريكس - لازم يكون تحت كل حاجة */
+        /* كود الماتريكس - طبقة خلفية */
         canvas { position: fixed; top: 0; left: 0; z-index: 1; width: 100%; height: 100%; }
         
-        /* شاشة الدخول - لازم تكون فوق الماتريكس (z-index: 100) */
+        /* شاشة الدخول - z-index: 100 */
         #lock-screen { position: relative; z-index: 100; text-align: center; background: rgba(0, 0, 0, 0.85); padding: 40px; border: 1px solid #ff007f; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); }
         
         input { background: #111; border: 1px solid #ff007f; color: #ff007f; padding: 12px; text-align: center; font-size: 1.2rem; outline: none; margin-top: 20px; width: 250px; border-radius: 5px; }
-        button { background: #ff007f; color: white; border: none; padding: 12px 30px; margin-top: 20px; cursor: pointer; font-weight: bold; border-radius: 5px; text-transform: uppercase; }
+        button { background: #ff007f; color: white; border: none; padding: 12px 30px; margin-top: 20px; cursor: pointer; font-weight: bold; border-radius: 5px; }
         
-        #overlay { position: relative; z-index: 110; text-align: center; display: none; background: black; width: 100%; height: 100%; justify-content: center; align-items: center; }
+        /* طبقة الهاكر الصافية (تظهر بعد الباسورد) - z-index: 50 */
+        #pure-matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 50; display: none; justify-content: center; align-items: center; }
+        
+        /* شاشة العد التنازلي - z-index: 110 */
+        #overlay { position: relative; z-index: 110; text-align: center; display: none; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; }
         #countdown { font-size: 8rem; font-weight: bold; color: #ff007f; text-shadow: 0 0 30px #ff007f; }
         
+        /* الفيديو - z-index: 150 */
         video { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 150; }
     </style>
 </head>
@@ -28,13 +32,16 @@
     <canvas id="matrix"></canvas>
 
     <div id="lock-screen">
-        <div style="color: #ff007f; font-size: 0.9rem; letter-spacing: 2px;">ENCRYPTED_SESSION_v4.0</div>
+        <div style="color: #ff007f; font-size: 0.9rem;">ENCRYPTED_SESSION_v5.0</div>
         <div style="color: white; font-size: 1.5rem; font-weight: bold; margin-top: 10px;">أدخل رمز فك التشفير</div>
         <input type="password" id="passInput" placeholder="••••••">
         <br>
         <button onclick="checkPass()">ACCESS SYSTEM</button>
-        <p id="error" style="color: red; font-size: 0.9rem; margin-top: 15px; display: none;">خطأ في الرمز - حاول مجدداً</p>
+        <p id="error" style="color: red; font-size: 0.9rem; margin-top: 15px; display: none;">خطأ في الرمز</p>
     </div>
+
+    <div id="pure-matrix">
+        </div>
 
     <div id="overlay">
         <div id="countdown">3</div>
@@ -45,26 +52,18 @@
     </video>
 
     <script>
+        // كود الماتريكس
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.onresize = resize;
-        resize();
-
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         const fontSize = 18;
         const columns = canvas.width / fontSize;
         const drops = Array(Math.floor(columns)).fill(1);
-
         function draw() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ff007f"; // اللون الوردي
-            ctx.font = fontSize + "px monospace";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff007f"; ctx.font = fontSize + "px monospace";
             for (let i = 0; i < drops.length; i++) {
                 const text = letters.charAt(Math.floor(Math.random() * letters.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -78,12 +77,20 @@
 
         function checkPass() {
             const input = document.getElementById('passInput').value;
-            const video = document.getElementById('myVideo');
             if (input === correctPass) {
+                // 1. إخفاء شاشة الباسورد
                 document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('overlay').style.display = 'flex';
-                video.load();
-                startCountdown();
+                // 2. إظهار الهاكر الصافي
+                document.getElementById('pure-matrix').style.display = 'flex';
+                
+                // 3. الانتظار 4 ثواني (هاكر صافي)
+                setTimeout(() => {
+                    document.getElementById('pure-matrix').style.display = 'none'; // إخفاء الهاكر الصافي
+                    document.getElementById('overlay').style.display = 'flex';     // إظهار العد التنازلي
+                    document.getElementById('myVideo').load();                   // تحميل الفيديو
+                    startCountdown();                                            // بدء العد التنازلي
+                }, 4000); // 4000 ميللي ثانية = 4 ثواني
+
             } else {
                 document.getElementById('error').style.display = 'block';
             }
@@ -108,3 +115,4 @@
     </script>
 </body>
 </html>
+
